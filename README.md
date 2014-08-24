@@ -29,7 +29,8 @@ $.use("lib/qmik/Store",function(Store){
 
 $.define("demo/useStore", function(require, exports, module){
 	var Store = require("lib/qmik/Store");
-
+	//或者不通过别名系统,直接通过url来引入
+	var Store = require("http://xxx.com/store.js");
 	Store.get("key");
 
 });
