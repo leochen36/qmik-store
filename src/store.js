@@ -7,7 +7,8 @@
 	var local = window.localStorage || {};
 	var session = window.sessionStorage || {};
 	var pathname = location.pathname;
-	var prefixCache = pathname + "/"; //key前辍
+	//缓存名前辍,这样的设计思想是防止同一域名下,不同应用路径的页面间,储存的key冲突
+	var prefixCache = location.protocol + pathname + "/"; //key前辍
 
 	function parseJSON(value) {
 		try {
@@ -117,29 +118,26 @@
 		module.exports = Store;
 	});
 
-	function to2Bit(num) {
-		num = Math.abs(parseInt((num + "").replace(/[^0-9]/g, "").substring(0, 2)) || 0);
-		return num < 10 ? "0" + num : num + ""
-	}
-
-	//清除缓存
+	//清除缓存,每天清理一次,
 	(function() {
-		var date = new Date();
-		var hhmm = parseInt(to2Bit(date.getHours()) + "" + to2Bit(date.getMinutes()));
-		if (hhmm < 900 && hhmm > 400) { //每天4-9点清除本地缓存
-			if (Store.get("sys") != true) {
-				try {
-					for (var key in local) {
-						if (new RegExp("^" + prefixCache).test(key)) {
-							key = key.replace(prefixCache, "");
-							Store.get(key);
-						}
+		//储存的个数超过50000条,清空储存
+		if(local.length >= 10000){
+			console.log("localStorage length is large,,,,clear store");
+			Store.clear();
+		}
+		var clearKey="___chear_flag";
+		if (Store.get(clearKey) != true) {
+			try {
+				for (var key in local) {
+					if (new RegExp("^" + prefixCache).test(key)) {
+						key = key.replace(prefixCache, "");
+						Store.get(key);
 					}
-				} catch (e) {
-					console.log(e);
 				}
-				Store.set("sys", true, 24 * 60 * 60);
+			} catch (e) {
+				console.log(e);
 			}
+			Store.set(clearKey, true, 24 * 60 * 60);//保存时间 24小时
 		}
 	})();
 })(Qmik);
